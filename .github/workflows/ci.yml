@@ -1,0 +1,128 @@
+name: CI Release Workflow
+
+on:
+    push:
+        branches:
+            - master
+        paths:
+            - 'src/**'
+            - 'test/**'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+
+permissions:
+    contents: write
+    issues: write
+    pull-requests: write
+    id-token: write
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Perform Code Linting
+              run: pnpm lint
+
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Run Test Cases
+              run: pnpm test
+
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Build Project
+              run: pnpm build
+            - name: Archive Build Output
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build-output
+                  path: lib
+
+    release:
+        needs: [lint, test, build]
+        name: Releasing code
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Download Build Output
+              uses: actions/download-artifact@v3
+              with:
+                  name: build-output
+                  path: lib
+            - name: Release to GITHUB and NPM
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: npx semantic-release
+            - name: Delete Artifact
+              if: always()
+              uses: geekyeggo/delete-artifact@v2
+              with:
+                  name: build-output

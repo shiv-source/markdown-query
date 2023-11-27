@@ -1,0 +1,4 @@
+# Ignore everything except files in the "src" directory
+/*
+!/src/
+!/test/

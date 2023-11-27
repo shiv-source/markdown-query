@@ -1,0 +1,78 @@
+name: Pull Request Workflow
+
+on:
+    pull_request:
+        branches:
+            - master
+        paths:
+            - 'src/**'
+            - 'test/**'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Perform Code Linting
+              run: pnpm lint
+
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Run Test Cases
+              run: pnpm test
+
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18.x]
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Set Up PNPM Environment
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Install Node.js Dependencies
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
+            - name: Install Project Dependencies
+              run: pnpm install
+            - name: Build Project
+              run: pnpm build
